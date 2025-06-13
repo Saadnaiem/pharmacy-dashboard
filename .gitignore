@@ -54,7 +54,6 @@ coverage.xml
 *.sqlite3
 *.db
 *.csv
-*.xlsx
 *.xls
 *.bak
 
