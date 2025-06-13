@@ -237,5 +237,5 @@ def dashboard():
         top_day_inv_weekday=top_day_inv_weekday
     )
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     app.run(debug=True)
