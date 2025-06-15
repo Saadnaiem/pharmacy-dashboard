@@ -13,28 +13,21 @@ DB_CONFIG = {
     'driver': os.environ.get('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
     'server': os.environ.get('DB_SERVER', 'DESKTOP-VOD4J60\\SQLEXPRESS01'),
     'database': os.environ.get('DB_NAME', 'DashboardDB'),
-    'trusted_connection': os.environ.get('DB_TRUSTED', 'yes')
 }
 
 def get_sqlalchemy_connection_string():
     """
-    Constructs the SQLAlchemy connection string for SQL Server with Windows Authentication.
-    Uses 'pyodbc' driver which requires the specified ODBC driver to be installed.
+    Constructs the SQLAlchemy connection string for SQL Server with SQL Authentication only.
+    Requires DB_USER and DB_PASSWORD to be set as environment variables.
     """
-    # Use SQL Server authentication if DB_USER and DB_PASSWORD are set
     user = os.environ.get('DB_USER')
     password = os.environ.get('DB_PASSWORD')
-    if user and password:
-        return (
-            f"mssql+pyodbc://{user}:{password}@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
-            f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"  # Replace spaces for URL encoding
-        )
-    else:
-        return (
-            f"mssql+pyodbc://@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
-            f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"  # Replace spaces for URL encoding
-            f"&trusted_connection={DB_CONFIG['trusted_connection']}"
-        )
+    if not user or not password:
+        raise ValueError("SQL Server authentication requires DB_USER and DB_PASSWORD environment variables.")
+    return (
+        f"mssql+pyodbc://{user}:{password}@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
+        f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"  # Replace spaces for URL encoding
+    )
 
 def load_data():
     """
@@ -334,5 +327,4 @@ def dashboard():
     )
 
 if __name__ == '__main__':
-    # Ensure debug mode is off in production for security and performance.
     app.run(debug=True)

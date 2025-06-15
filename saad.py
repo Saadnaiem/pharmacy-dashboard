@@ -1,21 +1,29 @@
 import pandas as pd
 from sqlalchemy import create_engine
+import os
 
-# Database configuration for Windows Authentication
+# Use environment variables for DB config in production
 DB_CONFIG = {
-    'driver': 'ODBC Driver 17 for SQL Server', # No curly braces for SQLAlchemy
-    'server': 'DESKTOP-VOD4J60\SQLEXPRESS01',  # Change to your actual server name or instance
-    'database': 'DashboardDB',
-    'trusted_connection': 'yes'
+    'driver': os.environ.get('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
+    'server': os.environ.get('DB_SERVER', 'localhost'),
+    'database': os.environ.get('DB_NAME', 'DashboardDB'),
+    'trusted_connection': os.environ.get('DB_TRUSTED', 'yes')
 }
 
 def get_sqlalchemy_connection_string():
-    # SQLAlchemy connection string for Windows Authentication
-    return (
-        f"mssql+pyodbc://@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
-        f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"
-        f"&trusted_connection={DB_CONFIG['trusted_connection']}"
-    )
+    user = os.environ.get('DB_USER')
+    password = os.environ.get('DB_PASSWORD')
+    if user and password:
+        return (
+            f"mssql+pyodbc://{user}:{password}@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
+            f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"
+        )
+    else:
+        return (
+            f"mssql+pyodbc://@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
+            f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"
+            f"&trusted_connection={DB_CONFIG['trusted_connection']}"
+        )
 
 def load_data():
     conn_str = get_sqlalchemy_connection_string()
