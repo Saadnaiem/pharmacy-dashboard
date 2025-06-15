@@ -1,5 +1,5 @@
 gunicorn
 Flask
 pandas
-plotly
-openpyxl
+SQLAlchemy
+pyodbc

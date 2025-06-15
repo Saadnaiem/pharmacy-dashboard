@@ -8,3 +8,15 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: DB_DRIVER
+        value: ODBC Driver 17 for SQL Server
+      - key: DB_SERVER
+        value: DESKTOP-VOD4J60\SQLEXPRESS01
+      - key: DB_NAME
+        value: DashboardDB
+      - key: DB_USER
+        value: DashBoard
+      - key: DB_PASSWORD
+        value: Plavix1981#
+      - key: DB_TRUSTED
+        value: no

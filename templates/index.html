@@ -2,114 +2,184 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacy Sales Dashboard</title>
+    <!-- Link to the external stylesheet -->
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Google Fonts for Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1><span class="h1-icon">💊</span>Pharmacy Sales Dashboard</h1>
-    <form method="POST">
-        <div class="sidebar-modern">
-            <div class="sidebar-header">
-                <span class="sidebar-logo">💊</span>
-                <span class="sidebar-title">Filters</span>
-            </div>
-            <div class="filter-group" id="filter-year">
-                <div class="filter-header" onclick="toggleFilter('filter-year')"><span class="filter-icon">📅</span> <span>Year</span></div>
-                <div class="filter-body">
-                    <select name="years" multiple>
-                        <option value="all" {% if selected_years|length == years|length %}selected{% endif %}>All</option>
-                        {% for y in years %}
-                        <option value="{{y}}" {% if y in selected_years %}selected{% endif %}>{{y}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="filter-group" id="filter-month">
-                <div class="filter-header" onclick="toggleFilter('filter-month')"><span class="filter-icon">🗓️</span> <span>Month</span></div>
-                <div class="filter-body">
-                    <select name="months" multiple>
-                        <option value="all" {% if selected_months|length == months|length %}selected{% endif %}>All</option>
-                        {% for m, m_num in month_map.items() %}
-                        <option value="{{m_num}}" {% if m_num in selected_months %}selected{% endif %}>{{m}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="filter-group" id="filter-location">
-                <div class="filter-header" onclick="toggleFilter('filter-location')"><span class="filter-icon">📍</span> <span>Location</span></div>
-                <div class="filter-body">
-                    <select name="locations" multiple>
-                        <option value="all" {% if selected_locations|length == locations|length %}selected{% endif %}>All</option>
-                        {% for l in locations %}
-                        <option value="{{l}}" {% if l in selected_locations %}selected{% endif %}>{{l}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="filter-group" id="filter-pharmacist">
-                <div class="filter-header" onclick="toggleFilter('filter-pharmacist')"><span class="filter-icon">👨‍⚕️</span> <span>Pharmacist</span></div>
-                <div class="filter-body">
-                    <select name="pharmacists" multiple>
-                        <option value="all" {% if selected_pharmacists|length == pharmacists|length %}selected{% endif %}>All</option>
-                        {% for p in pharmacists %}
-                        <option value="{{p}}" {% if p in selected_pharmacists %}selected{% endif %}>{{p}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <button type="submit">Apply Filters</button>
+    <div class="container">
+        <!-- Main Dashboard Header -->
+        <h1 class="dashboard-title"><span class="h1-icon">💊</span>Pharmacy Sales Dashboard</h1>
+
+        <!-- Error Message Display -->
+        {% if error %}
+        <div class="error-message">
+            <p>{{ error }}</p>
+            <p>Please ensure your SQL Server is running, accessible, and the ODBC Driver 17 is installed.</p>
         </div>
-    </form>
-    <div class="dashboard-cards">
-      <div class="card-row">
-        <div class="card"><div class="icon">👨‍⚕️</div><div class="label">Total Active Pharmacists</div><div class="value">{{total_active}}</div></div>
-        <div class="card"><div class="icon">💰</div><div class="label">Total Net Sales</div><div class="value">{{total_net_sales}}</div></div>
-        <div class="card"><div class="icon">🧾</div><div class="label">Total Net Invoices</div><div class="value">{{total_invoices}}</div></div>
-        <div class="card"><div class="icon">📊</div><div class="label">Avg Daily Sales</div><div class="value">{{avg_daily_sales}}</div></div>
-      </div>
-      <div class="card-row">
-        <div class="card"><div class="icon">🗓️</div><div class="label">Avg Daily Transactions</div><div class="value">{{avg_daily_tx}}</div></div>
-        <div class="card"><div class="icon">📅</div><div class="label">Top Day Sales</div><div class="value">{{top_day}}<br><span class="weekday-label">{{top_day_weekday}}</span><br>{{top_day_val}}</div></div>
-        <div class="card"><div class="icon">📈</div><div class="label">Top Day Invoices</div><div class="value">{{top_day_inv}}<br><span class="weekday-label">{{top_day_inv_weekday}}</span><br>{{top_day_inv_val}}</div></div>
-        <div class="card"><div class="icon">🏆</div><div class="label">Top Pharmacist Sales</div><div class="value">{{top_pharmacist}}<br>{{top_pharmacist_val}}</div></div>
-      </div>
-      <div class="card-row">
-        <div class="card"><div class="icon">🥇</div><div class="label">Top Pharmacist Invoices</div><div class="value">{{top_pharmacist_inv}}<br>{{top_pharmacist_inv_val}}</div></div>
-        <div class="card"><div class="icon">💎</div><div class="label">Top Invoice Value</div><div class="value">{{top_invoice_val}}<br>{{top_invoice_num}}<br>{{top_invoice_pharmacist}}</div></div>
-      </div>
+        {% endif %}
+
+        <form method="POST" class="dashboard-layout">
+            <!-- Sidebar for Filters -->
+            <div class="sidebar-modern">
+                <div class="sidebar-header">
+                    <span class="sidebar-logo">💊</span>
+                    <span class="sidebar-title">Filters</span>
+                </div>
+
+                <!-- Year Filter Group -->
+                <div class="filter-group" id="filter-year">
+                    <div class="filter-header" onclick="toggleFilter('filter-year')">
+                        <span class="filter-icon">📅</span>
+                        <span>Year</span>
+                        <span class="toggle-arrow"></span>
+                    </div>
+                    <div class="filter-body">
+                        <select name="years" multiple size="5"> {# Added size for scrollability #}
+                            <option value="all" {% if 'all' in selected_years %}selected{% endif %}>All</option>
+                            {% for y in years %}
+                            <option value="{{y}}" {% if y in selected_years %}selected{% endif %}>{{y}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Month Filter Group -->
+                <div class="filter-group" id="filter-month">
+                    <div class="filter-header" onclick="toggleFilter('filter-month')">
+                        <span class="filter-icon">🗓️</span>
+                        <span>Month</span>
+                        <span class="toggle-arrow"></span>
+                    </div>
+                    <div class="filter-body">
+                        <select name="months" multiple size="5"> {# Added size for scrollability #}
+                            <option value="all" {% if 'all' in request.form.getlist('months') %}selected{% endif %}>All</option>
+                            {% for m, m_num in month_map.items() %}
+                            <option value="{{m_num}}" {% if m_num in selected_months %}selected{% endif %}>{{m}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Location Filter Group -->
+                <div class="filter-group" id="filter-location">
+                    <div class="filter-header" onclick="toggleFilter('filter-location')">
+                        <span class="filter-icon">📍</span>
+                        <span>Location</span>
+                        <span class="toggle-arrow"></span>
+                    </div>
+                    <div class="filter-body">
+                        <select name="locations" multiple size="5"> {# Added size for scrollability #}
+                            <option value="all" {% if 'all' in request.form.getlist('locations') %}selected{% endif %}>All</option>
+                            {% for l in locations %}
+                            <option value="{{l}}" {% if l in selected_locations %}selected{% endif %}>{{l}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pharmacist Filter Group -->
+                <div class="filter-group" id="filter-pharmacist">
+                    <div class="filter-header" onclick="toggleFilter('filter-pharmacist')">
+                        <span class="filter-icon">👨‍⚕️</span>
+                        <span>Pharmacist</span>
+                        <span class="toggle-arrow"></span>
+                    </div>
+                    <div class="filter-body">
+                        <select name="pharmacists" multiple size="5"> {# Added size for scrollability #}
+                            <option value="all" {% if 'all' in request.form.getlist('pharmacists') %}selected{% endif %}>All</option>
+                            {% for p in pharmacists %}
+                            <option value="{{p}}" {% if p in selected_pharmacists %}selected{% endif %}>{{p}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="apply-filters-btn">Apply Filters</button>
+            </div>
+
+            <!-- Main Dashboard Content Area (Cards) -->
+            <div class="dashboard-content">
+                <div class="dashboard-cards">
+                    <div class="card-row">
+                        <div class="card"><div class="icon">👨‍⚕️</div><div class="label">Total Active Pharmacists</div><div class="value">{{total_active}}</div></div>
+                        <div class="card"><div class="icon">💰</div><div class="label">Total Net Sales</div><div class="value">{{total_net_sales}}</div></div>
+                        <div class="card"><div class="icon">🧾</div><div class="label">Total Net Invoices</div><div class="value">{{total_invoices}}</div></div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card"><div class="icon">📊</div><div class="label">Avg Daily Sales</div><div class="value">{{avg_daily_sales}}</div></div>
+                        <div class="card"><div class="icon">🗓️</div><div class="label">Avg Daily Transactions</div><div class="value">{{avg_daily_tx}}</div></div>
+                        <div class="card"><div class="icon">📅</div><div class="label">Top Day Sales</div><div class="value"><span class="weekday">{{top_day_weekday}}</span><br>{{top_day}}<br>{{top_day_val}}</div></div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card"><div class="icon">📈</div><div class="label">Top Day Invoices</div><div class="value"><span class="weekday">{{top_day_inv_weekday}}</span><br>{{top_day_inv}}<br>{{top_day_inv_val}}</div></div>
+                        <div class="card"><div class="icon">🏆</div><div class="label">Top Pharmacist Sales</div><div class="value">{{top_pharmacist}}<br>{{top_pharmacist_val}}</div></div>
+                        <div class="card"><div class="icon">🥇</div><div class="label">Top Pharmacist Invoices</div><div class="value">{{top_pharmacist_inv}}<br>{{top_pharmacist_inv_val}}</div></div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card"><div class="icon">💎</div><div class="label">Top Invoice Value</div><div class="value top-invoice">{{top_invoice_val}}<br>{{top_invoice_num}}<br>{{top_invoice_pharmacist}}</div></div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
-    <div id="bar-chart"></div>
+
     <script>
-        var graphs = JSON.parse('{{ graphJSON | tojson | safe }}');
-        Plotly.newPlot('bar-chart', graphs.data, graphs.layout);
-        
+        // JavaScript for toggling filter sections
         function toggleFilter(id) {
-            document.querySelectorAll('.filter-group').forEach(function(group) {
-                if (group.id === id) {
-                    group.classList.toggle('expanded');
-                } else {
-                    group.classList.remove('expanded');
-                }
-            });
+            const filterGroup = document.getElementById(id);
+            // Toggle 'expanded' class on the clicked filter group
+            filterGroup.classList.toggle('expanded');
         }
-        // Collapse filter after choosing an option, but do not clear selection
-        document.querySelectorAll('.filter-body select').forEach(function(select) {
-            select.addEventListener('change', function(e) {
-                var group = this.closest('.filter-group');
-                if (group) group.classList.remove('expanded');
-            });
-        });
-        // Expand first filter by default
+
         document.addEventListener('DOMContentLoaded', function() {
-            var first = document.querySelector('.filter-group');
-            if (first) first.classList.add('expanded');
-            // Attach collapse on change after DOM is ready
-            document.querySelectorAll('.filter-body select').forEach(function(select) {
+            // Automatically expand the first filter group on page load
+            const firstFilterGroup = document.querySelector('.filter-group');
+            if (firstFilterGroup) {
+                firstFilterGroup.classList.add('expanded');
+            }
+
+            // Collapse filter group when an option is selected or deselected
+            const filterGroups = Array.from(document.querySelectorAll('.filter-group'));
+            document.querySelectorAll('.filter-body select').forEach(function(select, idx) {
                 select.addEventListener('change', function(e) {
-                    var group = this.closest('.filter-group');
-                    if (group) group.classList.remove('expanded');
+                    const group = this.closest('.filter-group');
+                    if (group) {
+                        // If "All" is selected, deselect all others.
+                        // If "All" is deselected, no special action needed.
+                        // If any other option is selected, deselect "All".
+                        const allOption = select.querySelector('option[value="all"]');
+                        if (allOption) {
+                            if (allOption.selected && select.value === 'all') {
+                                // If 'All' is selected, clear other selections
+                                Array.from(select.options).forEach(option => {
+                                    if (option.value !== 'all') {
+                                        option.selected = false;
+                                    }
+                                });
+                            } else if (!allOption.selected && select.value !== 'all') {
+                                // If any non-'All' option is selected, deselect 'All'
+                                allOption.selected = false;
+                            }
+                            // If all non-all options are selected, select all.
+                            const nonAllOptions = Array.from(select.options).filter(opt => opt.value !== 'all');
+                            const allNonAllSelected = nonAllOptions.every(opt => opt.selected);
+                            if (allNonAllSelected && nonAllOptions.length > 0) {
+                                allOption.selected = true;
+                            } else if (!allNonAllSelected) {
+                                allOption.selected = false;
+                            }
+                        }
+                        // Close current group
+                        group.classList.remove('expanded');
+                        // Open next group if exists
+                        if (filterGroups[idx + 1]) {
+                            filterGroups[idx + 1].classList.add('expanded');
+                        }
+                    }
                 });
             });
         });
