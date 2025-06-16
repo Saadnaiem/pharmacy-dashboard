@@ -7,27 +7,16 @@ import os
 
 app = Flask(__name__)
 
-# Database configuration
-# Use environment variables for DB config in production
-DB_CONFIG = {
-    'driver': os.environ.get('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
-    'server': os.environ.get('DB_SERVER', 'DESKTOP-VOD4J60\\SQLEXPRESS01'),
-    'database': os.environ.get('DB_NAME', 'DashboardDB'),
-}
+# Database configuration for Supabase/PostgreSQL
+SUPABASE_DB_URL = os.environ.get('SUPABASE_DB_URL') or os.environ.get('DATABASE_URL')
 
 def get_sqlalchemy_connection_string():
     """
-    Constructs the SQLAlchemy connection string for SQL Server with SQL Authentication only.
-    Requires DB_USER and DB_PASSWORD to be set as environment variables.
+    Returns the SQLAlchemy connection string for Supabase/PostgreSQL.
     """
-    user = os.environ.get('DB_USER')
-    password = os.environ.get('DB_PASSWORD')
-    if not user or not password:
-        raise ValueError("SQL Server authentication requires DB_USER and DB_PASSWORD environment variables.")
-    return (
-        f"mssql+pyodbc://{user}:{password}@{DB_CONFIG['server']}/{DB_CONFIG['database']}"
-        f"?driver={DB_CONFIG['driver'].replace(' ', '+')}"  # Replace spaces for URL encoding
-    )
+    if not SUPABASE_DB_URL:
+        raise ValueError("SUPABASE_DB_URL environment variable is required for database connection.")
+    return SUPABASE_DB_URL
 
 def load_data():
     """
@@ -49,7 +38,7 @@ def load_data():
             LOCATIONNAME,
             PHARMACISTNAME,
             NETREVENUEAMOUNT
-        FROM Sales
+        FROM sales
         """
         df = pd.read_sql_query(query, engine)
 
