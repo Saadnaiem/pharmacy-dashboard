@@ -20,7 +20,7 @@ def get_sqlalchemy_connection_string():
 
 def load_data():
     """
-    Loads data from the SQL Server 'Dashboard' table into a Pandas DataFrame.
+    Loads data from the Supabase/PostgreSQL 'sales' table into a Pandas DataFrame.
     Performs initial data cleaning and transformation:
     - Converts 'INVOICEDATE' to datetime objects.
     - Fills NaN values in 'LOCATIONNAME' and 'PHAMACISTNAME' with 'Unknown'.
@@ -116,7 +116,7 @@ def dashboard():
         month_map = dict(zip(month_names, all_months))
         return render_template(
             'index.html',
-            error="Failed to load data from SQL Server. Please check database configuration and connectivity.",
+            error="Failed to load data from Supabase/PostgreSQL. Please check your SUPABASE_DB_URL environment variable and database connectivity.",
             years=[],
             selected_years=[],
             months=month_names,
