@@ -58,8 +58,8 @@ def load_data():
     except Exception as e:
         # Log the error for debugging
         print(f"Error loading data: {e}")
-        print("Please check your DB_CONFIG settings and ensure the SQL Server "
-              "is running and accessible. Also, verify the ODBC driver is installed.")
+        print("Please check your SUPABASE_DB_URL environment variable and ensure your Supabase/PostgreSQL database is running and accessible.")
+        # Optionally, log error to a file or monitoring service here
         return None
 
 def get_active_pharmacists(df):
@@ -108,7 +108,6 @@ def format_k_m(value):
 
 @app.route('/', methods=['GET', 'POST'])
 def dashboard():
-    print("[DEBUG] dashboard() called")
     df = load_data()
     if df is None:
         # Provide safe defaults for all required template variables
@@ -193,11 +192,6 @@ def dashboard():
     filtered_data = filter_data(df_filtered_by_year, selected_months,
                                  selected_locations, selected_pharmacists)
 
-    # After filtering
-    print(f"[DEBUG] filtered_data length: {len(filtered_data)}")
-    if not filtered_data.empty:
-        print(f"[DEBUG] filtered_data dates: {filtered_data['INVOICEDATE'].dt.date.unique()}")
-
     # --- Calculate Metrics ---
     # Calculate active pharmacists for the *currently filtered* period
     active_in_period = get_active_pharmacists(filtered_data)
@@ -234,7 +228,6 @@ def dashboard():
         if not daily_sales_sum.empty:
             top_day_date = daily_sales_sum.idxmax()
             top_day_val = daily_sales_sum.max()
-            print(f"[DEBUG] Top Day Sales: {top_day_date} -> {top_day_val}")
             top_day = pd.to_datetime(top_day_date).strftime('%d-%m-%Y')
             top_day_val = daily_sales_sum.max()
         else:
