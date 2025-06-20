@@ -4,19 +4,20 @@ from sqlalchemy import create_engine
 import json
 import calendar
 import os
+import psycopg2
 
 app = Flask(__name__)
 
-# Database configuration for Supabase/PostgreSQL
-SUPABASE_DB_URL = os.environ.get('SUPABASE_DB_URL') or os.environ.get('DATABASE_URL')
-
-def get_sqlalchemy_connection_string():
-    """
-    Returns the SQLAlchemy connection string for Supabase/PostgreSQL.
-    """
-    if not SUPABASE_DB_URL:
-        raise ValueError("SUPABASE_DB_URL environment variable is required for database connection.")
-    return SUPABASE_DB_URL
+# Connect to Supabase/PostgreSQL using individual environment variables
+def connect_to_database():
+    conn = psycopg2.connect(
+        host=os.environ['DB_HOST'],
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASSWORD'],
+        port=os.environ['DB_PORT']
+    )
+    return conn
 
 def load_data():
     """
@@ -28,9 +29,9 @@ def load_data():
     - Adjusts 'NETREVENUEAMOUNT' for return invoices ('-R' in INVOICENUMBER).
     Returns the DataFrame or None if an error occurs during connection/query.
     """
-    conn_str = get_sqlalchemy_connection_string()
+    conn = connect_to_database()
     try:
-        engine = create_engine(conn_str)
+        engine = create_engine(conn)
         query = """
         SELECT
             INVOICEDATE,
@@ -58,7 +59,7 @@ def load_data():
     except Exception as e:
         # Log the error for debugging
         print(f"Error loading data: {e}")
-        print("Please check your SUPABASE_DB_URL environment variable and ensure your Supabase/PostgreSQL database is running and accessible.")
+        print("Please check your database connection settings and ensure your Supabase/PostgreSQL database is running and accessible.")
         # Optionally, log error to a file or monitoring service here
         return None
 
@@ -116,7 +117,7 @@ def dashboard():
         month_map = dict(zip(month_names, all_months))
         return render_template(
             'index.html',
-            error="Failed to load data from Supabase/PostgreSQL. Please check your SUPABASE_DB_URL environment variable and database connectivity.",
+            error="Failed to load data from Supabase/PostgreSQL. Please check your database connection settings.",
             years=[],
             selected_years=[],
             months=month_names,
@@ -274,7 +275,7 @@ def dashboard():
     if not filtered_data.empty:
         date_to_check = pd.to_datetime('2025-05-24').date()
         total_net_for_day = filtered_data[filtered_data['INVOICEDATE'].dt.date == date_to_check]['NETREVENUEAMOUNT'].sum()
-        print(f"[DEBUG] NETREVENUEAMOUNT for 24-05-2025: {total_net_for_day}")
+        # print(f"[DEBUG] NETREVENUEAMOUNT for 24-05-2025: {total_net_for_day}")
 
     # --- Render the template with all calculated metrics and filter options ---
     return render_template('index.html',

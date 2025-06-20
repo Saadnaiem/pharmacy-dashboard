@@ -8,5 +8,13 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
-      - key: SUPABASE_DB_URL
-        value: <your-supabase-postgres-connection-string>
+      - key: DB_HOST
+        value: db.supabase.co
+      - key: DB_NAME
+        value: your_database_name
+      - key: DB_USER
+        value: your_username
+      - key: DB_PASSWORD
+        value: your_password
+      - key: DB_PORT
+        value: 5432
