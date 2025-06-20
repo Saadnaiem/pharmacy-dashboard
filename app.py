@@ -15,7 +15,8 @@ def connect_to_database():
         database=os.environ['DB_NAME'],
         user=os.environ['DB_USER'],
         password=os.environ['DB_PASSWORD'],
-        port=os.environ['DB_PORT']
+        port=os.environ['DB_PORT'],
+        sslmode='require'  # Enforce SSL connection
     )
     return conn
 
@@ -29,9 +30,8 @@ def load_data():
     - Adjusts 'NETREVENUEAMOUNT' for return invoices ('-R' in INVOICENUMBER).
     Returns the DataFrame or None if an error occurs during connection/query.
     """
-    conn = connect_to_database()
     try:
-        engine = create_engine(conn)
+        conn = connect_to_database()
         query = """
         SELECT
             INVOICEDATE,
@@ -41,7 +41,7 @@ def load_data():
             NETREVENUEAMOUNT
         FROM sales
         """
-        df = pd.read_sql_query(query, engine)
+        df = pd.read_sql_query(query, conn)
 
         # Data Cleaning and Preprocessing
         df['INVOICEDATE'] = pd.to_datetime(df['INVOICEDATE'])
