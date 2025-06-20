@@ -23,7 +23,7 @@ def load_data():
     Loads data from the Supabase/PostgreSQL 'sales' table into a Pandas DataFrame.
     Performs initial data cleaning and transformation:
     - Converts 'INVOICEDATE' to datetime objects.
-    - Fills NaN values in 'LOCATIONNAME' and 'PHAMACISTNAME' with 'Unknown'.
+    - Fills NaN values in 'LOCATIONNAME' and 'PHARMACISTNAME' with 'Unknown'.
     - Formats 'PHAMACISTNAME' to show only the first two words.
     - Adjusts 'NETREVENUEAMOUNT' for return invoices ('-R' in INVOICENUMBER).
     Returns the DataFrame or None if an error occurs during connection/query.
